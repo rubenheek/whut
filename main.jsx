@@ -1,9 +1,9 @@
 const config = {
-    authDomain: "whut-9f376.firebaseapp.com",
-    databaseURL: "https://whut-9f376.firebaseio.com"
+        authDomain: "whut-9f376.firebaseapp.com",
+        databaseURL: "https://whut-9f376.firebaseio.com"
     }
-var app = firebase.initializeApp(config);
-var db = app.database();
+let app = firebase.initializeApp(config);
+let db = app.database();
 
 function getData(ref, type) {
     return db.ref(ref).once(type).then((d) => {
@@ -13,19 +13,19 @@ function getData(ref, type) {
 
 const Letters = React.createClass({
     mixins: [ReactFireMixin],
-    getInitialState: function() {
+    getInitialState() {
         return {
             letters: []
         }
     },
-    componentWillMount: function() {
+    componentWillMount() {
         var ref = firebase.database().ref("test");
         this.bindAsArray(ref, "letters");
     },
-    render: function() {
+    render() {
         return(
             <ul>
-                {this.state.letters.map(function(letter, index) {
+                {this.state.letters.map((letter, index) => {
                     return <li key={index}>{letter['.value']}</li>;
                 })}
             </ul>
@@ -37,13 +37,3 @@ ReactDOM.render(
     <Letters/>,
     document.getElementById('content')
 );
-
-// db.ref("test").on("child_added", (data) => {
-//     console.log(data.val());
-//     q.innerHTML += "<p>" + data.val() + "</p>";
-// });
-
-// let ad = getData("test", "value").then((d) => {
-//     ad = d;
-//     console.log(ad);
-// });
