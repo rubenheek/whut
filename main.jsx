@@ -11,6 +11,37 @@ function getData(ref, type) {
     });
 }
 
+const QuestionForm = React.createClass({
+    mixins: [ReactFireMixin],
+    getInitialState() {
+        return {
+            text: ''
+        }
+    },
+    pushQuestion(q) {
+        q.preventDefault();
+        this.firebaseRefs['letters'].push(
+            this.state.text
+        );
+        this.setState({text: ""});
+    },
+    onChange(e) {
+        this.setState({text: e.target.value});
+    },
+    componentWillMount() {
+        let ref = firebase.database().ref("test");
+        this.bindAsArray(ref, "letters");
+    },
+    render() {
+        return (
+            <form onSubmit={this.pushQuestion}>
+             <input onChange={this.onChange} value={this.state.text}/>
+             <button>ask</button>
+            </form>
+        )
+    }
+});
+
 const Letters = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
@@ -34,6 +65,6 @@ const Letters = React.createClass({
 });
 
 ReactDOM.render(
-    <Letters/>,
+    <div><Letters/><QuestionForm/></div>,
     document.getElementById('content')
 );
