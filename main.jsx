@@ -18,8 +18,8 @@ const QuestionForm = React.createClass({
             text: ''
         }
     },
-    pushQuestion(q) {
-        q.preventDefault();
+    pushQuestion(e) {
+        e.preventDefault();
         this.firebaseRefs['letters'].push(
             this.state.text
         );
@@ -42,7 +42,7 @@ const QuestionForm = React.createClass({
     }
 });
 
-const Letters = React.createClass({
+const Questions = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
         return {
@@ -53,18 +53,22 @@ const Letters = React.createClass({
         var ref = firebase.database().ref("test");
         this.bindAsArray(ref, "letters");
     },
+    deleteQuestion(key) {
+        console.log(key);
+        this.firebaseRefs['letters'].child(key).remove();
+    },
     render() {
         return(
             <ul>
                 {this.state.letters.map((letter, index) => {
-                    return <li key={index}>{letter['.value']}</li>;
+                    return (
+                        <li>
+                         <span key={index}>{letter['.value']}</span>
+                         <button onClick={this.deleteQuestion.bind(this, index)}>delete</button>
+                        </li>
+                    )
                 })}
             </ul>
         );
     }
 });
-
-ReactDOM.render(
-    <div><Letters/><QuestionForm/></div>,
-    document.getElementById('content')
-);
