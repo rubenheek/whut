@@ -7,12 +7,11 @@ const App = React.createClass({
     render() {
         return(
             <div>
-                <h1>App2</h1>
-                <Link to="/login">login</Link>
-                <hr/>
-                <div>
-                    {this.props.children}
+                <div className="toolbar">
+                    <span>?</span>
+                    <span>Whut - app2</span>
                 </div>
+                {this.props.children}
             </div>
         )
     }
@@ -21,7 +20,10 @@ const App = React.createClass({
 const Default = React.createClass({
     render() {
         return(
-            <p>No match</p>
+            <div>
+             <p>No match</p>
+             <Link to="/login">login</Link>
+            </div>
         )
     }
 });
@@ -36,14 +38,24 @@ const Login = React.createClass({
     },
     addStudent(e) {
         e.preventDefault();
-        this.firebaseRefs['students'].child(this.state.studentID).set({
-            'name': '',
-            'lessons': []
-        }, (callback) => {
-            console.log(callback);
-            hashHistory.push('/student/' + this.state.studentID);
-            this.setState({studentID: ""});
-        });   
+        let studentID = this.state.studentID;
+        let ref = firebase.database().ref('students');
+        ref.once('value', (snapshot) => {
+            if(snapshot.hasChild(studentID)) {
+                console.log(studentID +  'exists');
+                hashHistory.push('/student/' + studentID);
+            } else {
+                this.setState({studentID: ""});
+                this.firebaseRefs['students'].child(studentID).set({
+                    'name': '',
+                    'lessons': []
+                }, (callback) => {
+                    console.log(callback);
+                    hashHistory.push('/student/' + studentID);
+                });
+            }
+        });
+           
     },
     handleChange(e) {
         this.setState({studentID: e.target.value});
@@ -51,6 +63,7 @@ const Login = React.createClass({
     componentWillMount() {
         let ref = firebase.database().ref('students');
         this.bindAsObject(ref, 'students');
+        //remove bind, use at addStudent() instead 
     },
     render() {
         return (
@@ -107,13 +120,18 @@ const GroupForm = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
         return {
-            group: {},
+            group: {
+                questions: []
+            },
+            questions: [],
             questionInput: ""
         }
     },
     componentWillMount() {
         let groupRef = firebase.database().ref('groups/' + this.props.params.groupID);
         this.bindAsObject(groupRef, 'group');
+        let questionsRef = firebase.database().ref('groups/' + this.props.params.groupID + '/questions');
+        this.bindAsArray(questionsRef, 'questions');
     },
     handleChange(e) {
         this.setState({questionInput: e.target.value});
@@ -124,21 +142,26 @@ const GroupForm = React.createClass({
             student: this.props.params.studentID,
             text: this.state.questionInput
         });
+        this.setState({questionInput: ""});
     },
     render() {
         let noQuestions;
-        if(!this.state.group.questions) { //filter on student
+        if(!this.state.questions) {
             noQuestions = (<li>No questions asked yet</li>);
         }
-        console.log(this.state.group.questions);
+        console.log(this.state.questions);
         return (
             <div>
                 <h3>{this.state.group.name}</h3>
-                <br/>
                 <span>Questions</span>
                 <lu>
                     {noQuestions}
-                   
+                    {this.state.questions.map((question, index) => {
+                        console.log(question);
+                        return (
+                            <li key={index}>{question.text}</li>
+                        )
+                    })}
                 </lu>
                 <br/>
                 <form onSubmit={this.pushQuestion}>
