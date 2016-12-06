@@ -232,6 +232,14 @@ const TeachterOverview = React.createClass({
     }
 });
 
+const GroupOverview = React.createClass({
+    render() {
+        return (
+            <span>{this.props.params.groupID}</span>
+        )
+    }
+});
+
 //routing
 ReactDOM.render(
     <Router history={hashHistory}>
@@ -240,6 +248,7 @@ ReactDOM.render(
             <Route path="student/:studentID" component={StudentOverview}/>
             <Route path="student/:studentID/group/:groupID" component={GroupForm}/>
             <Route path="teacher/:teacherID" component={TeachterOverview}/>
+            <Route path="teacher/:teacherID/group/:groupID" component={GroupOverview}/>
         </Route>
         <Route path="*" component={Default}/>
     </Router>,
