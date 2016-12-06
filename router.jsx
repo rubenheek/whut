@@ -42,9 +42,10 @@ const Login = React.createClass({
         let ref = firebase.database().ref('students');
         ref.once('value', (snapshot) => {
             if(snapshot.hasChild(studentID)) {
-                console.log(studentID +  'exists');
+                console.log(studentID +  ' exists');
                 hashHistory.push('/student/' + studentID);
             } else {
+                console.log('adding ' + studentID);
                 this.setState({studentID: ""});
                 this.firebaseRefs['students'].child(studentID).set({
                     'name': '',
@@ -54,8 +55,7 @@ const Login = React.createClass({
                     hashHistory.push('/student/' + studentID);
                 });
             }
-        });
-           
+        }); 
     },
     handleChange(e) {
         this.setState({studentID: e.target.value});
@@ -65,18 +65,25 @@ const Login = React.createClass({
         this.bindAsObject(ref, 'students');
         //remove bind, use at addStudent() instead 
     },
+    teacherLogin() {
+        let teacherID = 'grj';
+        hashHistory.push('/teacher/' + teacherID);
+    },
     render() {
         return (
-            <form onSubmit={this.addStudent}>
-             <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange}/>
-             <input type="submit" value="Login"/>
-            </form>
+            <div>
+             <form onSubmit={this.addStudent}>
+              <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange}/>
+              <input type="submit" value="Login"/>
+             </form>
+             <button onClick={this.teacherLogin}>Wacht ff, ik ben een docent</button>
+            </div>
         )
     }
 });
 
 //overview for student with groups he added
-const Overview = React.createClass({
+const StudentOverview = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
         return {
@@ -95,7 +102,6 @@ const Overview = React.createClass({
         if(!this.state.groups.length) {
             noGroups = (<li>Not enrolled in any groups yet</li>);
         }
-        console.log(this.state.name['.value']);
         return ( 
             <div>
                 <p>Welkom {this.state.name['.value'] || this.props.params.studentID}</p>
@@ -149,7 +155,6 @@ const GroupForm = React.createClass({
         if(!this.state.questions) {
             noQuestions = (<li>No questions asked yet</li>);
         }
-        console.log(this.state.questions);
         return (
             <div>
                 <h3>{this.state.group.name}</h3>
@@ -157,7 +162,6 @@ const GroupForm = React.createClass({
                 <lu>
                     {noQuestions}
                     {this.state.questions.map((question, index) => {
-                        console.log(question);
                         return (
                             <li key={index}>{question.text}</li>
                         )
@@ -173,21 +177,46 @@ const GroupForm = React.createClass({
     }
 });
 
-//  {this.state.group.questions.map(() => {
-//                         return(
-//                             <li>
-//                                 <span>li</span>
-//                             </li>
-//                         )
-//                     })}
+const TeachterOverview = React.createClass({
+    mixins: [ReactFireMixin],
+    checkID(id) {
+        let groupsRef = firebase.database().ref('groups');
+        groupsRef.once('value', (snapshot) => {
+            if(snapshot.hasChild(id)) {
+                this.checkID(this.generateID());
+            } else {
+                console.log('adding ' + id);
+            }
+            return;
+        });
+    },
+    generateID() {
+        let id = '';
+        for(let i=0; i<7; i++) {
+            id += Math.floor(Math.random()*10).toString();
+        }
+        return id;
+    },
+    createGroup() {
+        let groupID = this.checkID(this.generateID());
+        console.log(groupID);
+        return;
+    },
+    render() {
+        return (
+            <button onClick={this.createGroup}>Maak klas aan</button>
+        )
+    }
+});
 
 //routing
 ReactDOM.render(
     <Router history={hashHistory}>
         <Route path="/" component={App}>
             <Route path="login" component={Login}/>
-            <Route path="student/:studentID" component={Overview}/>
+            <Route path="student/:studentID" component={StudentOverview}/>
             <Route path="student/:studentID/group/:groupID" component={GroupForm}/>
+            <Route path="teacher/:teacherID" component={TeachterOverview}/>
         </Route>
         <Route path="*" component={Default}/>
     </Router>,
