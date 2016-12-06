@@ -203,8 +203,8 @@ const TeachterOverview = React.createClass({
                 this.checkID(this.generateID());
             } else {
                 console.log('adding ' + id);
+                this.addGroup(id);
             }
-            return;
         });
     },
     generateID() {
@@ -214,16 +214,16 @@ const TeachterOverview = React.createClass({
         }
         return id;
     },
-    createGroup() {
-        let groupID = this.checkID(this.generateID());
-        console.log(groupID);
-        firebase.database().ref('groups').child(groupID).set({
+    addGroup(id) {
+        firebase.database().ref('groups').child(id).set({
             'owner': this.props.params.teacherID
         }, (callback) => {
             console.log(callback);
-            hashHistory.push('/teacher/' + groupID);
+            hashHistory.push('/teacher/' + this.props.params.teacherID + '/group/' + id);
         });
-        return;
+    },
+    createGroup() {
+        this.checkID(this.generateID());    
     },
     render() {
         return (
