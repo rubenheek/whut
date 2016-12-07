@@ -101,7 +101,8 @@ const StudentOverview = React.createClass({
     getInitialState() {
         return {
             groups: [],
-            name: {}
+            name: {},
+            groupInput: ''
         }
     },
     componentWillMount() {
@@ -109,6 +110,21 @@ const StudentOverview = React.createClass({
         this.bindAsArray(groupsRef, 'groups');
         let nameRef = firebase.database().ref('students/' + this.props.params.studentID + '/name');
         this.bindAsObject(nameRef, 'name');
+    },
+    handleChange(e) {
+        this.setState({groupInput: e.target.value});
+    },
+    joinGroup(e) {
+        e.preventDefault();
+        firebase.database().ref('groups/' + this.state.groupInput).once('value', (snapshot) => {
+            console.log(snapshot.val());
+            if(snapshot.val()) {
+                console.log(snapshot.val());
+                hashHistory.push('/student/' + this.props.params.studentID + '/group/' + this.state.groupInput);
+            } else {
+                alert('Ongeldige groep ID');
+            };
+        });
     },
     render() {
         let noGroups;
@@ -129,6 +145,10 @@ const StudentOverview = React.createClass({
                         )
                     })}
                 </ul>
+                <form onSubmit={this.joinGroup}>
+                    <input type="text" value={this.state.groupInput} placeholder="Groep toevoegen" onChange={this.handleChange}/>
+                    <input type="submit" value="Voeg toe"/>
+                </form>
             </div>
         )
     }
@@ -196,6 +216,11 @@ const GroupForm = React.createClass({
 
 const TeachterOverview = React.createClass({
     mixins: [ReactFireMixin],
+    getInitialState() {
+        return {
+            groups: []
+        }
+    },
     checkID(id) {
         let groupsRef = firebase.database().ref('groups');
         groupsRef.once('value', (snapshot) => {
@@ -225,17 +250,60 @@ const TeachterOverview = React.createClass({
     createGroup() {
         this.checkID(this.generateID());    
     },
+    componentWillMount() {
+        let groupsRef = firebase.database().ref('groups');
+        this.bindAsArray(groupsRef, 'groups');
+    },
     render() {
         return (
-            <button onClick={this.createGroup}>Maak klas aan</button>
+            <div>
+             {this.state.groups.map((group, index) => {
+                 let groupLI;
+                 console.log(group['.key']);
+                 if(group.owner == this.props.params.teacherID) {
+                     return (<li key={index}>
+                                 <Link to={"teacher/" + this.props.params.studentID + "/group/" + group['.key']}>{group['.key']}</Link>
+                                </li>);
+                 }
+             })}
+             <button onClick={this.createGroup}>Maak klas aan</button>
+            </div>
         )
     }
 });
 
 const GroupOverview = React.createClass({
+    mixins: [ReactFireMixin],
+    getInitialState() {
+        return {
+            group: {
+                questions: []
+            }
+        }
+    },
+    componentWillMount() {
+        let questionsRef = firebase.database().ref('groups/' + this.props.params.groupID + '/questions');
+        this.bindAsArray(questionsRef, 'questions');
+        
+    },
     render() {
+        let noQuestions;
+        if(!this.state.questions.length) {
+            noQuestions = (<li>No questions asked yet</li>);
+        }
         return (
-            <span>{this.props.params.groupID}</span>
+                <div>
+                    <h1>{this.props.params.groupID}</h1>
+                    <span>Questions</span>
+                    <lu>
+                        {noQuestions}
+                        {this.state.questions.map((question, index) => {
+                            return (
+                                <li key={index}>{question.text}</li>
+                            )
+                        })}
+                    </lu>
+                </div>
         )
     }
 });
