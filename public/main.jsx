@@ -21,8 +21,8 @@ const App = React.createClass({
         return(
             <div>
                 <div className="toolbar">
-                    <span>?</span>
-                    <span>Whut - app2</span>
+                    <span>App 2</span>
+                    <span></span>
                 </div>
                 {this.props.children}
             </div>
@@ -89,7 +89,7 @@ const Login = React.createClass({
               <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange}/>
               <input type="submit" value="Login"/>
              </form>
-             <button onClick={this.teacherLogin}>Wacht ff, ik ben een docent</button>
+             <button onClick={this.teacherLogin}>Docent login</button>
             </div>
         )
     }
@@ -120,7 +120,8 @@ const StudentOverview = React.createClass({
             console.log(snapshot.val());
             if(snapshot.val()) {
                 console.log(snapshot.val());
-                hashHistory.push('/student/' + this.props.params.studentID + '/group/' + this.state.groupInput);
+                this.firebaseRefs['groups'].push(this.state.groupInput);
+                //hashHistory.push('/student/' + this.props.params.studentID + '/group/' + this.state.groupInput);
             } else {
                 alert('Ongeldige groep ID');
             };
@@ -137,10 +138,11 @@ const StudentOverview = React.createClass({
                 <span>Groups</span>
                 <ul>
                     {noGroups}
-                    {this.state.groups.map((group, index) => {
+                    {this.state.groups.map((group) => {
+                        console.log(group.value);
                         return (
-                            <li key={index}>
-                                <Link to={"student/" + this.props.params.studentID + "/group/" + index}>{group.name}</Link>
+                            <li key={group['.key']}>
+                                <Link to={"student/" + this.props.params.studentID + "/group/" + group['.value']}>{group['.value']}</Link>
                             </li>
                         )
                     })}
@@ -194,14 +196,14 @@ const GroupForm = React.createClass({
         }
         return (
             <div>
-                <h3>{this.state.group.name}</h3>
+                <h1>{this.props.params.groupID}</h1>
                 <span>Questions</span>
                 <lu>
                     {noQuestions}
                     {this.state.questions.map((question, index) => {
-                        return (
-                            <li key={index}>{question.text}</li>
-                        )
+                        if(question.student == this.props.params.studentID) {
+                            return (<li key={index}>{question.text}</li>);
+                        }
                     })}
                 </lu>
                 <br/>
@@ -214,6 +216,7 @@ const GroupForm = React.createClass({
     }
 });
 
+//teacher overview
 const TeachterOverview = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
@@ -272,6 +275,7 @@ const TeachterOverview = React.createClass({
     }
 });
 
+//teacher group overview
 const GroupOverview = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
