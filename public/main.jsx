@@ -18,13 +18,21 @@ var hashHistory = ReactRouter.hashHistory;
 
 const App = React.createClass({
     render() {
+        console.log(this.props.children);
+        let noChildren;
+        if(this.props.children) {
+            noChildren = null;
+        } else {
+            noChildren = (<Login/>);
+        }
         return(
             <div>
                 <div className="toolbar">
-                    <span>App 2</span>
+                    <span>? App 2</span>
                     <span></span>
                 </div>
                 {this.props.children}
+                {noChildren}
             </div>
         )
     }
@@ -49,26 +57,36 @@ const Login = React.createClass({
             studentID: ""
         }
     },
-    addStudent(e) {
-        e.preventDefault();
+    login(e) {
+        if(e) {e.preventDefault()};
         let studentID = this.state.studentID;
         let ref = firebase.database().ref('students');
-        ref.once('value', (snapshot) => {
-            if(snapshot.hasChild(studentID)) {
-                console.log(studentID +  ' exists');
-                hashHistory.push('/student/' + studentID);
-            } else {
-                console.log('adding ' + studentID);
-                this.setState({studentID: ""});
-                this.firebaseRefs['students'].child(studentID).set({
-                    'name': '',
-                    'lessons': []
-                }, (callback) => {
-                    console.log(callback);
+        ref.once('value', (data) => {
+            console.log('---');
+            console.log(data.child(studentID + '/name').val());
+            console.log(data.hasChild(studentID));
+            if(data.hasChild(studentID)) {
+                if(data.child(studentID + '/name').val()) {
                     hashHistory.push('/student/' + studentID);
-                });
+                } else {
+                    console.log('name forward');
+                    hashHistory.push('/' + studentID + '/name');
+                }
+            } else {
+                console.log('adding student');
+                this.addStudent()
             }
-        }); 
+        });
+    },
+    addStudent() {
+        console.log('adding ' + this.state.studentID);
+        this.firebaseRefs['students'].child(this.state.studentID).set({
+            groups: [],
+            added: (new Date()).getTime()
+        }, (callback) => {
+            console.log(callback);
+            this.login();
+        });
     },
     handleChange(e) {
         this.setState({studentID: e.target.value});
@@ -76,7 +94,6 @@ const Login = React.createClass({
     componentWillMount() {
         let ref = firebase.database().ref('students');
         this.bindAsObject(ref, 'students');
-        //remove bind, use at addStudent() instead 
     },
     teacherLogin() {
         let teacherID = 'grj';
@@ -85,7 +102,7 @@ const Login = React.createClass({
     render() {
         return (
             <div>
-             <form onSubmit={this.addStudent}>
+             <form onSubmit={this.login}>
               <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange}/>
               <input type="submit" value="Login"/>
              </form>
@@ -95,7 +112,7 @@ const Login = React.createClass({
     }
 });
 
-//overview for student with groups he added
+//overview for student with groups added
 const StudentOverview = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
@@ -129,6 +146,7 @@ const StudentOverview = React.createClass({
     },
     render() {
         let noGroups;
+        console.log(this.state.groups);
         if(!this.state.groups.length) {
             noGroups = (<li>Not enrolled in any groups yet</li>);
         }
@@ -139,7 +157,7 @@ const StudentOverview = React.createClass({
                 <ul>
                     {noGroups}
                     {this.state.groups.map((group) => {
-                        console.log(group.value);
+                        console.log(group);
                         return (
                             <li key={group['.key']}>
                                 <Link to={"student/" + this.props.params.studentID + "/group/" + group['.value']}>{group['.value']}</Link>
@@ -164,8 +182,13 @@ const GroupForm = React.createClass({
             group: {
                 questions: []
             },
+            groupName: "",
             questions: [],
-            questionInput: ""
+            question: {
+                assignment: "",
+                part: "",
+                description: ""
+            }
         }
     },
     componentWillMount() {
@@ -173,42 +196,71 @@ const GroupForm = React.createClass({
         this.bindAsObject(groupRef, 'group');
         let questionsRef = firebase.database().ref('groups/' + this.props.params.groupID + '/questions');
         this.bindAsArray(questionsRef, 'questions');
+        firebase.database().ref('groups/' + this.props.params.groupID + '/name').on('value', (data) => {
+            this.state.groupName = data.val();
+            this.forceUpdate();
+        });
+        questionsRef.on('child_removed', (data) => {
+            console.log(data);
+            console.log('removed');
+        });
     },
-    handleChange(e) {
-        this.setState({questionInput: e.target.value});
+    handleAssignmentChange(e) {
+        e.preventDefault();
+        this.state.question.assignment = e.target.value;
+        this.forceUpdate();
+    },
+    handlePartChange(e) {
+        e.preventDefault();
+        this.state.question.part = e.target.value;
+        this.forceUpdate();
+    },
+    handleDescriptionChange(e) {
+        e.preventDefault();
+        this.state.question.description = e.target.value;
+        this.forceUpdate();
     },
     pushQuestion(e) {
         e.preventDefault();
-        console.log(this.state.questionInput);
-        if(!this.state.questionInput) {
-            return;
+        if(!this.state.question.assignment && !this.state.question.part && !this.state.question.description) {
+             return;
         }
         this.firebaseRefs['group'].child('questions').push({
             student: this.props.params.studentID,
-            text: this.state.questionInput
+            question: this.state.question
         });
-        this.setState({questionInput: ""});
+        this.setState({question: {assignment: "", part: "", description: ""}});
+    },
+    removeQuestion(key) {
+        firebase.database().ref('groups/' + this.props.params.groupID + '/questions').child(key).remove();
     },
     render() {
         let noQuestions;
         if(!this.state.questions) {
             noQuestions = (<li>No questions asked yet</li>);
         }
+        let groupName = this.state.groupName ? this.state.groupName + ' - ' : '';
         return (
             <div>
-                <h1>{this.props.params.groupID}</h1>
+                <h1>{groupName + this.props.params.groupID}</h1>
                 <span>Questions</span>
                 <lu>
                     {noQuestions}
                     {this.state.questions.map((question, index) => {
                         if(question.student == this.props.params.studentID) {
-                            return (<li key={index}>{question.text}</li>);
+                            let q = question.question;
+                            return (<li key={index}>
+                                        {question.student + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
+                                        <button type="submit" onClick={() => {this.removeQuestion(question['.key'])}}>X</button>
+                                    </li>);
                         }
                     })}
                 </lu>
                 <br/>
                 <form onSubmit={this.pushQuestion}>
-                    <input type="text" value={this.state.questionInput} placeholder="question" onChange={this.handleChange}/>
+                    <input type="number" value={this.state.question.assignment} placeholder="som" onChange={this.handleAssignmentChange}/>
+                    <input type="text" value={this.state.question.part} placeholder="A" onChange={this.handlePartChange}/>
+                    <input type="text" value={this.state.question.description} placeholder="beschrijving" onChange={this.handleDescriptionChange}/>
                     <input type="submit" value="Ask"/>
                 </form>
             </div>
@@ -244,10 +296,11 @@ const TeachterOverview = React.createClass({
     },
     addGroup(id) {
         firebase.database().ref('groups').child(id).set({
-            'owner': this.props.params.teacherID
+            owner: this.props.params.teacherID,
+            added: (new Date()).getTime()
         }, (callback) => {
             console.log(callback);
-            hashHistory.push('/teacher/' + this.props.params.teacherID + '/group/' + id);
+            hashHistory.push('/' + this.props.params.teacherID + '/' + id + '/name');
         });
     },
     createGroup() {
@@ -281,6 +334,7 @@ const GroupOverview = React.createClass({
     getInitialState() {
         return {
             group: {
+                name: "",
                 questions: []
             }
         }
@@ -288,27 +342,106 @@ const GroupOverview = React.createClass({
     componentWillMount() {
         let questionsRef = firebase.database().ref('groups/' + this.props.params.groupID + '/questions');
         this.bindAsArray(questionsRef, 'questions');
-        
+        firebase.database().ref('groups/' + this.props.params.groupID + '/name').on('value', (data) => {
+            console.log(data.val());
+            this.state.group.name = data.val();
+            this.forceUpdate();
+        });
+        questionsRef.on('child_removed', (data) => {
+            console.log(data);
+            console.log('removed');
+        });
+    },
+    removeQuestion(key) {
+        firebase.database().ref('groups/'+ this.props.params.groupID + '/questions').child(key).remove();
     },
     render() {
         let noQuestions;
         if(!this.state.questions.length) {
             noQuestions = (<li>No questions asked yet</li>);
         }
+        let groupName = this.state.group.name ? this.state.group.name + ' - ' : '';
         return (
                 <div>
-                    <h1>{this.props.params.groupID}</h1>
+                    <h1>{groupName + this.props.params.groupID}</h1>
                     <span>Questions</span>
                     <lu>
                         {noQuestions}
                         {this.state.questions.map((question, index) => {
-                            return (
-                                <li key={index}>{question.text}</li>
-                            )
+                            console.log(question);
+                            let q = question.question;
+                            return (<li key={index}>
+                                        {question.student + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
+                                        <button type="submit" onClick={() => {this.removeQuestion(question['.key'])}}>X</button>
+                                    </li>);
                         })}
                     </lu>
                 </div>
-        )
+        );
+    }
+});
+
+//add student name
+let addStudentName = React.createClass({
+    mixins: [ReactFireMixin],
+    getInitialState() {
+        return {
+            studentName: ""
+        }
+    },
+    handleSubmit(e) {
+        let nameRef = firebase.database().ref('students/' + this.props.params.studentID + '/name');
+        nameRef.set(this.state.studentName).then(() => {
+            console.log('name changed');
+            hashHistory.push('/student/' + this.props.params.studentID);
+        });
+    },
+    handleChange(e) {
+        e.preventDefault();
+        this.setState({studentName: e.target.value});
+    },
+    render() {
+        return(
+            <div>
+                <form onSubmit={this.handleSubmit}>
+                    <input type="text" value={this.state.studentName} placeholder="naam" onChange={this.handleChange}/>
+                    <input type="submit" value="Ga"/>
+                </form>     
+            </div> 
+        ); 
+    }    
+});
+
+//add group name
+let addGroupName = React.createClass({
+    mixins: [ReactFireMixin],
+    getInitialState() {
+        return {
+            groupName: ""
+        }
+    },
+   handleSubmit(e) {
+        e.preventDefault();
+        let nameRef = firebase.database().ref('groups/' + this.props.params.groupID + '/name');
+        nameRef.set(this.state.groupName).then((callback) => {
+            console.log(callback);
+            console.log('group name changed');
+            hashHistory.push('/teacher/'+ this.props.params.teacherID + '/group/' + this.props.params.groupID)
+        });
+    },
+    handleChange(e) {
+        e.preventDefault();
+        this.setState({groupName: e.target.value});
+    },
+    render() {
+        return(
+            <div>
+                <form onSubmit={this.handleSubmit}>
+                    <input type="text" placeholder="groepsnaam" onChange={this.handleChange} value={this.state.groupName}/>
+                    <input type="submit" value="Ga"/>
+                </form>
+            </div>
+        );  
     }
 });
 
@@ -316,11 +449,13 @@ const GroupOverview = React.createClass({
 ReactDOM.render(
     <Router history={hashHistory}>
         <Route path="/" component={App}>
-            <Route path="login" component={Login}/>
             <Route path="student/:studentID" component={StudentOverview}/>
             <Route path="student/:studentID/group/:groupID" component={GroupForm}/>
+            <Route path=":studentID/name" component={addStudentName}/>
             <Route path="teacher/:teacherID" component={TeachterOverview}/>
             <Route path="teacher/:teacherID/group/:groupID" component={GroupOverview}/>
+            <Route path=":teachterID/:groupID/name" component={addGroupName}/>
+            <Route path="login" component={Login}/>
         </Route>
         <Route path="*" component={Default}/>
     </Router>,
