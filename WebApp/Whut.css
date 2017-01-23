@@ -22,10 +22,23 @@ ul.topnav {
     height: 96px;
 }
 
+
 /* Float the list items side by side */
 ul.topnav li {
-    float: center;
     margin-top: 8px;
+    display : inline-block;
+}
+
+#left-top {
+    float: left;
+    margin-top: 0px;
+}
+
+#right-top {
+    
+    float: right;
+    padding: 14px 37px;
+    font-size: 48px;
 }
 
 /* Style the links inside the list items */
