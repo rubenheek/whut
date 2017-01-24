@@ -22,11 +22,9 @@
     margin: 0px 16px 0px 0px;
 }
 
-/* Ite's part */
-
-* {
+/** {
     font-family: Georgia;
-}
+}*/
 
 a:hover, a:visited, a:link, a:active
 {
@@ -38,7 +36,7 @@ body {
     margin: 0px;
 }
 
-ul.topnav {
+/*ul.topnav {
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -46,7 +44,16 @@ ul.topnav {
     background-color: #3f51b5;
     text-align: center;
     height: 96px;
-}
+}*/
+
+<<<<<<< HEAD
+/*ul.topnav li {
+    float: center;
+    margin-top: 8px;
+}*/
+
+.grouplink {
+=======
 
 
 /* Float the list items side by side */
@@ -70,6 +77,7 @@ ul.topnav li {
 
 /* Style the links inside the list items */
 ul.topnav li a {
+>>>>>>> 7a123eb715577c1b04bda8cc2d54963ca22a823c
     display: inline-block;
     color: #f2f2f2;
     text-align: center;
@@ -77,6 +85,37 @@ ul.topnav li a {
     text-decoration: none;
     transition: 0.3s;
     font-size: 48px;
+    font-family: Rockwell;
+}
+
+.litext {
+    display: inline-block;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: 0.3s;
+    font-size: 48px;
+    font-family: Rockwell;
+}
+
+.nodatatext {
+    display: inline-block;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: 0.3s;
+    font-size: 24px;
+    font-family: Rockwell;
+}
+
+h1 {
+    margin: auto;
+    text-align: center;
+    color: black;
+    padding: 14px 16px;
+    display: inline-block;
+    text-decoration: none;
+    transition: 0.3s;
     font-family: Rockwell;
 }
 
@@ -117,24 +156,21 @@ ul.topnav li a {
     text-decoration: none;
 }
 
-#input {
-    background: #E8EAF6;
-    color: black;
+input[type="text"] {
+    background: #E8EAF6 !important;
+    color: black !important;
 }
 
-#klassen {
+.grouplist {
     margin: auto;
     width: 50%;
     text-align: center;
     /*line-height: 64px;*/
     color: black;
+    list-style-type: none;
 }
 
-#titletext {
+/*#titletext {
     font-size: 48px;
     font-weight: bold;
-}
-
-ul {
-  list-style-type: none;
-}
+}*/
