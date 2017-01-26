@@ -26,10 +26,26 @@ const App = React.createClass({
         } else {
             noChildren = (<Login/>);
         }
+        let path = this.props.location.pathname.split('/');
+        console.log(path);
+        let backArrow;
+        if(path[1] === 'student' && path[3] === 'group') {
+            backArrow = (
+                <input type="button" value="<-" onClick={() => hashHistory.push('student/' + path[2])}/>
+            );
+        } else if(path[1] === 'teacher' && path[3] === 'group') {
+            backArrow = (
+                <input type="button" value="<--" onClick={() => hashHistory.push('teacher/' + path[2])}/>
+            );
+        } else {
+            backArrow = (
+                <span>?</span>
+            );
+        }
         return(
             <div>
                 <div className="toolbar">
-                    <span>?</span>
+                    {backArrow}
                     <span>Whut</span>
                 </div>
                 {this.props.children}
@@ -246,7 +262,7 @@ const GroupForm = React.createClass({
                             let q = question.question;
                             return (<li key={index} className="litext">
                                         {question.name + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
-                                        <button type="submit" onClick={() => {this.removeQuestion(question['.key'])}}>X</button>
+                                        <input type="button" value="X" onClick={() => {this.removeQuestion(question['.key'])}}/>
                                     </li>);
                         }
                     })}
@@ -270,6 +286,10 @@ const TeachterOverview = React.createClass({
         return {
             groups: []
         }
+    },
+    componentWillMount() {
+        let groupsRef = firebase.database().ref('groups');
+        this.bindAsArray(groupsRef, 'groups');
     },
     checkID(id) { 
         //kijkt of de groep ID niet al eens gebruik is, kan geen kwaad ondank de 10ˆ7 combinaties :), 
@@ -297,16 +317,15 @@ const TeachterOverview = React.createClass({
             added: (new Date()).getTime()
         }, (callback) => {
             console.log(callback);
-            hashHistory.push('/' + this.props.params.teacherID + '/' + id + '/name');
-            //linkt je door naar scherm om een groepsnaam in te voeren, waar je vervolgens naar het groepsoverzicht wordt gelinkt als dit al gedaan is
+            hashHistory.push('/' + this.props.params.teacherID + '/' + id + '/name'); //linkt je door naar scherm om een groepsnaam in te voeren
         });
     },
     createGroup() { //startpunt van groep toevoegen
         this.checkID(this.generateID());    
     },
-    componentWillMount() {
-        let groupsRef = firebase.database().ref('groups');
-        this.bindAsArray(groupsRef, 'groups');
+    removeGroup(key) {
+        console.log(key);
+        firebase.database().ref('groups/' + key).remove();
     },
     render() {
         let noGroups;
@@ -321,9 +340,12 @@ const TeachterOverview = React.createClass({
                  let groupLI;
                  console.log(group['.key']);
                  if(group.owner == this.props.params.teacherID) {
+                     console.log(group);
+                     console.log(index);
                      return (<li key={index} className="grouplink">
-                                 <Link to={"teacher/" + this.props.params.studentID + "/group/" + group['.key']}>{group['.key']}</Link>
-                                </li>);
+                                 <Link to={"teacher/" + this.props.params.teacherID + "/group/" + group['.key']}>{group.name + ' (' + group['.key'] + ")"}</Link>
+                                 <input type="button" value="X" onClick={() => {this.removeGroup(group['.key'])}}/>
+                            </li>);
                  }
              })}
              </ul>
@@ -372,7 +394,7 @@ const GroupOverview = React.createClass({
                             console.log(question);
                             let q = question.question;
                             return (<li key={index} className="litext">
-                                        {question.nama + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
+                                        {question.name + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
                                         <button type="submit" onClick={() => {this.removeQuestion(question['.key'])}}>X</button>
                                     </li>);
                         })}
@@ -426,7 +448,7 @@ let addGroupName = React.createClass({
         let nameRef = firebase.database().ref('groups/' + this.props.params.groupID + '/name');
         nameRef.set(this.state.groupName).then((callback) => {
             console.log('group name changed');
-            hashHistory.push('/teacher/'+ this.props.params.teacherID + '/group/' + this.props.params.groupID); //linkt je naar groepen overzicht van docent
+            hashHistory.push('/teacher/' + this.props.params.teacherID + '/group/' + this.props.params.groupID); //linkt je naar groepen overzicht van docent
         });
     },
     handleChange(e) {
@@ -454,7 +476,7 @@ ReactDOM.render(
             <Route path=":studentID/name" component={addStudentName}/>
             <Route path="teacher/:teacherID" component={TeachterOverview}/>
             <Route path="teacher/:teacherID/group/:groupID" component={GroupOverview}/>
-            <Route path=":teachterID/:groupID/name" component={addGroupName}/>
+            <Route path=":teacherID/:groupID/name" component={addGroupName}/>
             <Route path="login" component={Login}/>
         </Route>
         <Route path="*" component={Default}/>

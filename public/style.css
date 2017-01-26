@@ -36,25 +36,16 @@ body {
     margin: 0px;
 }
 
-/*ul.topnav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #3f51b5;
-    text-align: center;
-    height: 96px;
-}*/
-
-<<<<<<< HEAD
-/*ul.topnav li {
-    float: center;
-    margin-top: 8px;
-}*/
-
 .grouplink {
-=======
-
+    display: inline-block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: 0.3s;
+    font-size: 48px;
+    font-family: Rockwell;
+}
 
 /* Float the list items side by side */
 ul.topnav li {
@@ -72,20 +63,6 @@ ul.topnav li {
     float: right;
     padding: 14px 37px;
     font-size: 48px;
-}
-
-
-/* Style the links inside the list items */
-ul.topnav li a {
->>>>>>> 7a123eb715577c1b04bda8cc2d54963ca22a823c
-    display: inline-block;
-    color: #f2f2f2;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    transition: 0.3s;
-    font-size: 48px;
-    font-family: Rockwell;
 }
 
 .litext {
@@ -165,12 +142,10 @@ input[type="text"] {
     margin: auto;
     width: 50%;
     text-align: center;
-    /*line-height: 64px;*/
     color: black;
     list-style-type: none;
 }
 
-/*#titletext {
-    font-size: 48px;
-    font-weight: bold;
-}*/
+.grouplist li {
+    float: left;
+}
