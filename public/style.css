@@ -111,15 +111,15 @@ h1 {
     -moz-border-radius: 36;
     border-radius: 36px;
     color: #ffffff !important;
-    font-size: 30px;
-    padding: 1em 1em 1em 1em;
+    font-size: 1.5em;
+    padding: 1em 1.5em 1em 1.5em;
     border: solid #1f628d 0px;
     text-decoration: none;
     display: block;
     margin: 0 auto;
     text-align: center;
     margin-top: 2%;
-    width: 70%;
+    width: 80%;
 
 }
 
