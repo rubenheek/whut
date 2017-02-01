@@ -262,7 +262,7 @@ const GroupForm = React.createClass({
                             let q = question.question;
                             return (<li key={index} className="litext">
                                         {question.name + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
-                                        <input type="button" value="X" onClick={() => {this.removeQuestion(question['.key'])}}/>
+                                        <input class="delete" type="button" value="X" onClick={() => {this.removeQuestion(question['.key'])}}/>
                                     </li>);
                         }
                     })}
