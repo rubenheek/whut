@@ -31,11 +31,11 @@ const App = React.createClass({
         let backArrow;
         if(path[1] === 'student' && path[3] === 'group') {
             backArrow = (
-                <input type="button" value="<-" onClick={() => hashHistory.push('student/' + path[2])}/>
+                <input type="button" class="back" value="&#x21D0;" onClick={() => hashHistory.push('student/' + path[2])}/>
             );
         } else if(path[1] === 'teacher' && path[3] === 'group') {
             backArrow = (
-                <input type="button" value="<--" onClick={() => hashHistory.push('teacher/' + path[2])}/>
+                <input type="button" class="back" value="&#x21D0;" onClick={() => hashHistory.push('teacher/' + path[2])}/>
             );
         } else {
             backArrow = (
