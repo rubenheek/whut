@@ -72,6 +72,8 @@ ul.topnav li {
     transition: 0.3s;
     font-size: 48px;
     font-family: Rockwell;
+    width: 100%;
+    word-wrap: break-word;
 }
 
 .nodatatext {
