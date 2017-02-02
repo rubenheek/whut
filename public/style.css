@@ -63,7 +63,7 @@ ul.topnav li {
     display : inline-block;
 }
 
-#left-top {
+/*#left-top {
     float: left;
     margin-top: 0px;
 }
@@ -73,7 +73,7 @@ ul.topnav li {
     float: right;
     padding: 14px 37px;
     font-size: 48px;
-}
+}*/
 
 .litext {
     display: inline-block;
