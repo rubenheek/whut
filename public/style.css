@@ -78,7 +78,7 @@ ul.topnav li {
 .litext {
     display: inline-block;
     text-align: center;
-    padding: 14px 16px;
+    padding-top: 16px;
     text-decoration: none;
     transition: 0.3s;
     font-size: 32px;
@@ -90,11 +90,12 @@ ul.topnav li {
 .nodatatext {
     display: inline-block;
     text-align: center;
-    padding: 14px 16px;
+    padding-top: 16px;
     text-decoration: none;
     transition: 0.3s;
     font-size: 24px;
     font-family: Rockwell;
+    width: 100%;
 }
 
 h1 {
