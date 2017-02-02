@@ -72,7 +72,8 @@ const Login = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
         return {
-            studentID: ""
+            studentID: "",
+            password: ""
         }
     },
     login(e) { //login functie
@@ -103,11 +104,16 @@ const Login = React.createClass({
     handleChange(e) {
         this.setState({studentID: e.target.value});
     },
+    handlePasswordChange(e) {
+        e.preventDefault();
+        this.setState({password: e.target.value});
+    },
     componentWillMount() {
         let ref = firebase.database().ref('students');
         this.bindAsObject(ref, 'students');
     },
     teacherLogin() { //stuurt je door naar het klassenoverzicht van de docent, TODO: (login voor meerdere docenten komt nog)
+        if(this.state.password !== "admin") return;
         let teacherID = 'grj';
         hashHistory.push('/teacher/' + teacherID);
     },
@@ -118,6 +124,7 @@ const Login = React.createClass({
               <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange} className="btn"/>
               <input type="submit" value="Login" className="btn"/>
              </form>
+             <input type="text" value={this.state.password} placeholder="wachtwoord docent" onChange={this.handlePasswordChange} className="btn"/>
              <button onClick={this.teacherLogin} className="btn">Docent login</button>
             </div>
         )
@@ -141,14 +148,23 @@ const StudentOverview = React.createClass({
         this.bindAsObject(nameRef, 'name');
     },
     handleChange(e) {
+        if(e.target.value.length > 7) return;
         this.setState({groupInput: e.target.value});
+    },
+    test() {
+        console.log('---');
+        this.state.groups.map((group) => {
+            console.log('---' + group['.value']);
+            if(group['.value'] == this.state.groupInput) {
+                return true;
+            }
+        });
+        return false;
     },
     joinGroup(e) { //voegt een groep ID toe aan je groepen
         e.preventDefault();
         firebase.database().ref('groups/' + this.state.groupInput).once('value', (snapshot) => {
-            console.log(snapshot.val());
-            if(snapshot.val()) { //kijkt of de groep bestaat
-                console.log(snapshot.val());
+            if(snapshot.val() && !this.test()) { //kijkt of de groep bestaat of niet al toegevoegd is
                 this.firebaseRefs['groups'].push(this.state.groupInput); //linkt je naar de vragenform van een groep
             } else { //groep bestaat niet
                 alert('Ongeldige groep ID');
@@ -216,17 +232,41 @@ const GroupForm = React.createClass({
             this.forceUpdate();
         })
     },
+    doesObeyScientificNotation(char) {
+        console.log(char);
+        //let snc = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'e', 'E', '.', ',', '-'];
+        let snc = '0123456789eE.,-';
+        //let check = false;
+        // for(var i=0; i<snc.lenght; i++) {
+        //     if(char == snc[i]) {
+        //         console.log('check');
+        //         check = true;
+        //     }
+        // }
+        if(snc.indexOf(char) > -1) {
+            console.log('true');
+            return true;
+        }
+        console.log('false');
+        return false;
+    },
     handleAssignmentChange(e) {
         e.preventDefault();
+        //console.log(parseInt(e.target.value) > 9 || isNan(parseInt(e.target.value.charAt(e.target.value.length-1))));
+        //console.log(parseInt(e.target.value).toString().length);
+        if(parseInt(e.target.value) > 999 || !this.doesObeyScientificNotation(parseInt(e.target.value.charAt(e.target.value.length)))) return;
+        //if(!this.doesObeyScientificNotation(e.target.value.charAt(e.target.value.lenght-1))) return;
         this.state.question.assignment = e.target.value;
         this.forceUpdate();
     },
     handlePartChange(e) {
         e.preventDefault();
+        if(e.target.value.length > 1) return;
         this.state.question.part = e.target.value;
         this.forceUpdate();
     },
     handleDescriptionChange(e) {
+        if(e.target.value.length > 144) return;
         e.preventDefault();
         this.state.question.description = e.target.value;
         this.forceUpdate();
