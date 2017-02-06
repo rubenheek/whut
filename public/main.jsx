@@ -31,11 +31,11 @@ const App = React.createClass({
         let backArrow;
         if(path[1] === 'student' && path[3] === 'group') {
             backArrow = (
-                <input type="button" class="back" value="&#x21D0;" onClick={() => hashHistory.push('student/' + path[2])}/>
+                <input type="button" className="back" value="&#x21D0;" onClick={() => hashHistory.push('student/' + path[2])}/>
             );
         } else if(path[1] === 'teacher' && path[3] === 'group') {
             backArrow = (
-                <input type="button" class="back" value="&#x21D0;" onClick={() => hashHistory.push('teacher/' + path[2])}/>
+                <input type="button" className="back" value="&#x21D0;" onClick={() => hashHistory.push('teacher/' + path[2])}/>
             );
         } else {
             backArrow = (
@@ -102,7 +102,10 @@ const Login = React.createClass({
         });
     },
     handleChange(e) {
-        this.setState({studentID: e.target.value});
+        let char = parseInt(e.target.value.charAt(e.target.value.length-1));
+        if((char && e.target.value.length < 8) || e.target.value.length == 0) {
+            this.setState({studentID: e.target.value});
+        }  
     },
     handlePasswordChange(e) {
         e.preventDefault();
@@ -124,8 +127,10 @@ const Login = React.createClass({
               <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange} className="btn"/>
               <input type="submit" value="Login" className="btn"/>
              </form>
-             <input type="text" value={this.state.password} placeholder="wachtwoord docent" onChange={this.handlePasswordChange} className="btn"/>
-             <button onClick={this.teacherLogin} className="btn">Docent login</button>
+             <form onSubmit={this.teacherLogin}>
+              <input type="password" value={this.state.password} placeholder="wachtwoord docent" onChange={this.handlePasswordChange} className="btn"/>
+              <button type="submit" className="btn">Docent login</button>
+             </form>
             </div>
         )
     }
@@ -152,20 +157,24 @@ const StudentOverview = React.createClass({
         this.setState({groupInput: e.target.value});
     },
     test() {
+        let check = false;
         console.log('---');
         this.state.groups.map((group) => {
-            console.log('---' + group['.value']);
+            console.log(group['.value']);
+            console.log(this.state.groupInput);
             if(group['.value'] == this.state.groupInput) {
-                return true;
+                console.log('true');
+                check = true;
             }
         });
-        return false;
+        return check;
     },
     joinGroup(e) { //voegt een groep ID toe aan je groepen
         e.preventDefault();
         firebase.database().ref('groups/' + this.state.groupInput).once('value', (snapshot) => {
             if(snapshot.val() && !this.test()) { //kijkt of de groep bestaat of niet al toegevoegd is
                 this.firebaseRefs['groups'].push(this.state.groupInput); //linkt je naar de vragenform van een groep
+                this.setState({groupInput: ''});
             } else { //groep bestaat niet
                 alert('Ongeldige groep ID');
             };
@@ -230,34 +239,15 @@ const GroupForm = React.createClass({
         nameRef.once('value', (data) => {
             this.state.studentName = data.val();
             this.forceUpdate();
-        })
-    },
-    doesObeyScientificNotation(char) {
-        console.log(char);
-        //let snc = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'e', 'E', '.', ',', '-'];
-        let snc = '0123456789eE.,-';
-        //let check = false;
-        // for(var i=0; i<snc.lenght; i++) {
-        //     if(char == snc[i]) {
-        //         console.log('check');
-        //         check = true;
-        //     }
-        // }
-        if(snc.indexOf(char) > -1) {
-            console.log('true');
-            return true;
-        }
-        console.log('false');
-        return false;
+        });
     },
     handleAssignmentChange(e) {
         e.preventDefault();
-        //console.log(parseInt(e.target.value) > 9 || isNan(parseInt(e.target.value.charAt(e.target.value.length-1))));
-        //console.log(parseInt(e.target.value).toString().length);
-        if(parseInt(e.target.value) > 999 || !this.doesObeyScientificNotation(parseInt(e.target.value.charAt(e.target.value.length)))) return;
-        //if(!this.doesObeyScientificNotation(e.target.value.charAt(e.target.value.lenght-1))) return;
-        this.state.question.assignment = e.target.value;
-        this.forceUpdate();
+        let char = parseInt(e.target.value.charAt(e.target.value.length-1));
+        if((char && parseInt(e.target.value) < 1000) || e.target.value.length == 0) {
+            this.state.question.assignment = e.target.value;
+            this.forceUpdate();
+        }
     },
     handlePartChange(e) {
         e.preventDefault();
@@ -288,7 +278,13 @@ const GroupForm = React.createClass({
     },
     render() { //bij het if-statement worden vragen niet van jou eruit gefilterd
         let noQuestions;
-        if(!this.state.questions.length) {
+        let q = this.state.questions.filter((q) => {
+            console.log(q);
+            console.log(q['.key'] + ' - ' + q.name + ' - ' + this.props.params.studentID);
+            return q.student == this.props.params.studentID;
+        });
+        console.log(q);
+        if(!q.length) {
             noQuestions = (<li className="nodatatext">Geen vragen gesteld</li>);
         }
         let groupName = this.state.groupName ? this.state.groupName + ' - ' : '';
@@ -302,7 +298,7 @@ const GroupForm = React.createClass({
                             let q = question.question;
                             return (<li key={index} className="litext">
                                         {question.name + ": "}<b>{q.assignment + q.part}</b>{" " + q.description}
-                                        <input class="delete" type="button" value="X" onClick={() => {this.removeQuestion(question['.key'])}}/>
+                                        <input className="delete" type="button" value="X" onClick={() => {this.removeQuestion(question['.key'])}}/>
                                     </li>);
                         }
                     })}
@@ -444,7 +440,7 @@ const GroupOverview = React.createClass({
     }
 });
 
-//compnent om een gebruikersnaam toe te voegen
+//component om een gebruikersnaam toe te voegen
 let addStudentName = React.createClass({
     mixins: [ReactFireMixin],
     getInitialState() {
@@ -453,6 +449,7 @@ let addStudentName = React.createClass({
         }
     },
     handleSubmit(e) {
+        e.preventDefault();
         let nameRef = firebase.database().ref('students/' + this.props.params.studentID + '/name'); //linkt je naar gropen overzicht van leerling
         nameRef.set(this.state.studentName).then(() => {
             console.log('name changed');
