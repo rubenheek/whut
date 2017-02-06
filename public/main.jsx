@@ -103,7 +103,7 @@ const Login = React.createClass({
     },
     handleChange(e) {
         let char = parseInt(e.target.value.charAt(e.target.value.length-1));
-        if((char && e.target.value.length < 8) || e.target.value.length == 0) {
+        if(((char || char == 0) && e.target.value.length < 8) || e.target.value.length == 0) {
             this.setState({studentID: e.target.value});
         }  
     },
@@ -244,7 +244,7 @@ const GroupForm = React.createClass({
     handleAssignmentChange(e) {
         e.preventDefault();
         let char = parseInt(e.target.value.charAt(e.target.value.length-1));
-        if((char && parseInt(e.target.value) < 1000) || e.target.value.length == 0) {
+        if(((char || char == 0) && parseInt(e.target.value) < 1000) || e.target.value.length == 0) {
             this.state.question.assignment = e.target.value;
             this.forceUpdate();
         }
