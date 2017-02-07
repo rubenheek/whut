@@ -73,6 +73,7 @@ const Login = React.createClass({
     getInitialState() {
         return {
             studentID: "",
+            teacherID: "",
             password: ""
         }
     },
@@ -107,6 +108,10 @@ const Login = React.createClass({
             this.setState({studentID: e.target.value});
         }  
     },
+    handleTeacherIDChange(e) {
+        e.preventDefault();
+        this.setState({teacherID: e.target.value});
+    },
     handlePasswordChange(e) {
         e.preventDefault();
         this.setState({password: e.target.value});
@@ -116,9 +121,8 @@ const Login = React.createClass({
         this.bindAsObject(ref, 'students');
     },
     teacherLogin() { //stuurt je door naar het klassenoverzicht van de docent, TODO: (login voor meerdere docenten komt nog)
-        if(this.state.password !== "admin") return;
-        let teacherID = 'grj';
-        hashHistory.push('/teacher/' + teacherID);
+        if(this.state.password !== this.state.teacherID) return;
+        hashHistory.push('/teacher/' + this.state.teacherID);
     },
     render() {
         return (
@@ -127,7 +131,9 @@ const Login = React.createClass({
               <input type="text" value={this.state.studentID} placeholder="leerlingnummer" onChange={this.handleChange} className="btn"/>
               <input type="submit" value="Login" className="btn"/>
              </form>
+             <hr/>
              <form onSubmit={this.teacherLogin}>
+              <input type="text" value={this.state.teacherID} placeholder="docent afkorting" onChange={this.handleTeacherIDChange} className="btn"/>
               <input type="password" value={this.state.password} placeholder="wachtwoord docent" onChange={this.handlePasswordChange} className="btn"/>
               <button type="submit" className="btn">Docent login</button>
              </form>
@@ -365,7 +371,11 @@ const TeachterOverview = React.createClass({
     },
     render() {
         let noGroups;
-        if(!this.state.groups.length) {
+        let g = this.state.groups.filter((g) => {
+            console.log(g);
+            return g.owner == this.props.params.teacherID;
+        });
+        if(!g.length) {
             noGroups = (<li className="nodatatext">Geen groepen aangemaakt</li>);
         }
         return (
@@ -456,9 +466,23 @@ let addStudentName = React.createClass({
             hashHistory.push('/student/' + this.props.params.studentID);
         });
     },
+    hasEmoji(str) {
+        let ranges = [
+            '\ud83c[\udf00-\udfff]', // U+1F300 to U+1F3FF
+            '\ud83d[\udc00-\ude4f]', // U+1F400 to U+1F64F
+            '\ud83d[\ude80-\udeff]' // U+1F680 to U+1F6FF
+        ];
+        if (str.match(ranges.join('|'))) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     handleChange(e) {
         e.preventDefault();
-        this.setState({studentName: e.target.value});
+        if(!this.hasEmoji(e.target.value) && e.target.value.length < 32) {
+                    this.setState({studentName: e.target.value});
+        }
     },
     render() {
         return(
